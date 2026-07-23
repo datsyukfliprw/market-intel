@@ -3,7 +3,7 @@ from pydantic_settings import SettingsConfigDict
 from app.core.config import Settings
 
 
-class TestSettings(Settings):
+class LocalSettings(Settings):
     """Settings variant that never reads the local .env file during tests."""
 
     model_config = SettingsConfigDict(
@@ -14,7 +14,7 @@ class TestSettings(Settings):
 
 
 def test_default_settings() -> None:
-    settings = TestSettings()
+    settings = LocalSettings()
 
     assert settings.app_name == "Market Intel API"
     assert settings.app_version == "0.1.0"
@@ -29,7 +29,7 @@ def test_settings_from_environment(monkeypatch) -> None:
     monkeypatch.setenv("ENVIRONMENT", "testing")
     monkeypatch.setenv("DEBUG", "true")
 
-    settings = TestSettings()
+    settings = LocalSettings()
 
     assert settings.app_name == "Market Intel Test API"
     assert settings.environment == "testing"
