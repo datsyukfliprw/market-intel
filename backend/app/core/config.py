@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     alpaca_secret_key: str | None = None
     alpaca_base_url: str = "https://paper-api.alpaca.markets"
 
+    scanner_universe_symbols: str = ""
+
     openai_api_key: str | None = None
 
     log_level: str = "INFO"

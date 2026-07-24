@@ -1,3 +1,4 @@
+import pytest
 from pydantic_settings import SettingsConfigDict
 
 from app.core.config import Settings
@@ -24,7 +25,7 @@ def test_default_settings() -> None:
     assert settings.alpaca_api_key is None
 
 
-def test_settings_from_environment(monkeypatch) -> None:
+def test_settings_from_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("APP_NAME", "Market Intel Test API")
     monkeypatch.setenv("ENVIRONMENT", "testing")
     monkeypatch.setenv("DEBUG", "true")

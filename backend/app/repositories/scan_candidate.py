@@ -19,12 +19,14 @@ class ScanCandidateRepository:
         self,
         scan_run_id: UUID,
         symbol: str,
+        instrument_id: UUID | None = None,
         rank: int | None = None,
         composite_score: float | None = None,
     ) -> ScanCandidate:
         candidate = ScanCandidate(
             scan_run_id=scan_run_id,
             symbol=symbol,
+            instrument_id=instrument_id,
             rank=rank,
             composite_score=composite_score,
         )
@@ -34,7 +36,6 @@ class ScanCandidateRepository:
         try:
             self.session.flush()
         except IntegrityError as error:
-            self.session.rollback()
             raise DuplicateScanCandidateError from error
 
         return candidate

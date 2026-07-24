@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models.scan_candidate import ScanCandidate
 from app.models.scan_run import ScanRunStatus
+from app.repositories.instrument import InstrumentRepository
 from app.repositories.scan_candidate import (
     DuplicateScanCandidateError,
     ScanCandidateRepository,
@@ -24,11 +25,16 @@ class InvalidCandidateScanRunStateError(Exception):
     pass
 
 
+class ScanCandidateSymbolNotFoundError(Exception):
+    pass
+
+
 class ScanCandidateService:
     def __init__(self, session: Session) -> None:
         self.session = session
         self.repository = ScanCandidateRepository(session)
         self.scan_run_repository = ScanRunRepository(session)
+        self.instrument_repository = InstrumentRepository(session)
 
     def create_candidate(
         self,
@@ -47,10 +53,18 @@ class ScanCandidateService:
                 "Candidates can only be added to running scan runs.",
             )
 
+        instrument = self.instrument_repository.get_by_symbol(
+            data.symbol,
+        )
+
+        if instrument is None:
+            raise ScanCandidateSymbolNotFoundError
+
         try:
             candidate = self.repository.create(
                 scan_run_id=scan_run_id,
                 symbol=data.symbol,
+                instrument_id=instrument.id,
                 rank=data.rank,
                 composite_score=data.composite_score,
             )
@@ -60,6 +74,7 @@ class ScanCandidateService:
 
             return candidate
         except DuplicateScanCandidateError:
+            self.session.rollback()
             raise
         except Exception:
             self.session.rollback()

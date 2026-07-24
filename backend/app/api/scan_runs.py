@@ -16,6 +16,7 @@ from app.services.scan_run import (
     ScanRunNotFoundError,
     ScanRunService,
 )
+from app.services.scanner import ScannerExecutionError, ScannerService
 
 router = APIRouter(
     prefix="/scan-runs",
@@ -32,6 +33,12 @@ def get_service(
     session: DatabaseSession,
 ) -> ScanRunService:
     return ScanRunService(session)
+
+
+def get_scanner_service(
+    session: DatabaseSession,
+) -> ScannerService:
+    return ScannerService(session)
 
 
 def scan_run_not_found() -> HTTPException:
@@ -165,5 +172,30 @@ def fail_scan_run(
         raise scan_run_not_found() from error
     except InvalidScanRunTransitionError as error:
         raise invalid_transition(error) from error
+
+    return ScanRunRead.model_validate(scan_run)
+
+
+@router.post(
+    "/{scan_run_id}/execute",
+    response_model=ScanRunRead,
+)
+def execute_scan_run(
+    scan_run_id: UUID,
+    session: DatabaseSession,
+) -> ScanRunRead:
+    service = get_scanner_service(session)
+
+    try:
+        scan_run = service.execute(scan_run_id)
+    except ScanRunNotFoundError as error:
+        raise scan_run_not_found() from error
+    except InvalidScanRunTransitionError as error:
+        raise invalid_transition(error) from error
+    except ScannerExecutionError as error:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(error),
+        ) from error
 
     return ScanRunRead.model_validate(scan_run)

@@ -19,3 +19,12 @@ dev = [
     "pytest-cov>=7.1.0",
     "ruff>=0.16.0",
 ]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+exclude = ["migrations", ".venv", "build", "dist"]

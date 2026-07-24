@@ -10,11 +10,12 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.models.instrument import Instrument
     from app.models.scan_run import ScanRun
 
 
@@ -25,6 +26,11 @@ class ScanCandidate(Base):
             "scan_run_id",
             "symbol",
             name="uq_scan_candidates_scan_run_symbol",
+        ),
+        UniqueConstraint(
+            "scan_run_id",
+            "instrument_id",
+            name="uq_scan_candidates_scan_run_instrument",
         ),
     )
 
@@ -43,8 +49,17 @@ class ScanCandidate(Base):
     )
 
     symbol: Mapped[str] = mapped_column(
-        String(10),
+        String(20),
         nullable=False,
+        index=True,
+    )
+
+    instrument_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(
+            "instruments.id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
         index=True,
     )
 
@@ -67,3 +82,15 @@ class ScanCandidate(Base):
     scan_run: Mapped["ScanRun"] = relationship(
         back_populates="candidates",
     )
+
+    instrument: Mapped["Instrument"] = relationship(
+        "Instrument",
+    )
+
+    @validates("symbol")
+    def _uppercase_symbol(
+        self,
+        key: str,
+        value: str,
+    ) -> str:
+        return value.strip().upper()

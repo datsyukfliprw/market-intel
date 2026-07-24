@@ -17,6 +17,7 @@ from app.services.scan_candidate import (
     InvalidCandidateScanRunStateError,
     ScanCandidateNotFoundError,
     ScanCandidateService,
+    ScanCandidateSymbolNotFoundError,
 )
 
 router = APIRouter(
@@ -66,6 +67,11 @@ def create_scan_candidate(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Candidate already exists for this scan run",
+        ) from error
+    except ScanCandidateSymbolNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="No canonical instrument found for symbol",
         ) from error
 
     return ScanCandidateRead.model_validate(candidate)

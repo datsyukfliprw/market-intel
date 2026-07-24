@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 class ScanCandidateCreate(BaseModel):
     symbol: str = Field(
         min_length=1,
-        max_length=10,
+        max_length=20,
     )
 
     rank: int | None = Field(
@@ -32,6 +32,7 @@ class ScanCandidateRead(BaseModel):
 
     id: UUID
     scan_run_id: UUID
+    instrument_id: UUID | None
     symbol: str
     rank: int | None
     composite_score: float | None
