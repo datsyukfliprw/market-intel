@@ -10,7 +10,19 @@ class ScanRunCreate(BaseModel):
     strategy_name: str = Field(
         min_length=1,
         max_length=100,
-        examples=["momentum_breakout"],
+    )
+
+
+class ScanRunComplete(BaseModel):
+    candidates_found: int = Field(
+        ge=0,
+    )
+
+
+class ScanRunFail(BaseModel):
+    error_message: str = Field(
+        min_length=1,
+        max_length=2000,
     )
 
 

@@ -11,18 +11,29 @@ class ScanRunRepository:
         self.session = session
 
     def create(self, strategy_name: str) -> ScanRun:
-        scan_run = ScanRun(strategy_name=strategy_name)
+        scan_run = ScanRun(
+            strategy_name=strategy_name,
+        )
 
         self.session.add(scan_run)
-        self.session.commit()
-        self.session.refresh(scan_run)
+        self.session.flush()
 
         return scan_run
 
+    def get_by_id(
+        self,
+        scan_run_id: UUID,
+    ) -> ScanRun | None:
+        return self.session.get(
+            ScanRun,
+            scan_run_id,
+        )
+
     def list_all(self) -> list[ScanRun]:
-        statement = select(ScanRun).order_by(ScanRun.started_at.desc())
+        statement = select(ScanRun).order_by(
+            ScanRun.started_at.desc(),
+        )
 
-        return list(self.session.scalars(statement).all())
-
-    def get_by_id(self, scan_run_id: UUID) -> ScanRun | None:
-        return self.session.get(ScanRun, scan_run_id)
+        return list(
+            self.session.scalars(statement).all(),
+        )

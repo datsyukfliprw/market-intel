@@ -5,15 +5,49 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.scan_run import ScanRunCreate, ScanRunRead
-from app.services.scan_run import ScanRunService
+from app.schemas.scan_run import (
+    ScanRunComplete,
+    ScanRunCreate,
+    ScanRunFail,
+    ScanRunRead,
+)
+from app.services.scan_run import (
+    InvalidScanRunTransitionError,
+    ScanRunNotFoundError,
+    ScanRunService,
+)
 
 router = APIRouter(
     prefix="/scan-runs",
     tags=["scan runs"],
 )
 
-DatabaseSession = Annotated[Session, Depends(get_db)]
+DatabaseSession = Annotated[
+    Session,
+    Depends(get_db),
+]
+
+
+def get_service(
+    session: DatabaseSession,
+) -> ScanRunService:
+    return ScanRunService(session)
+
+
+def scan_run_not_found() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Scan run not found",
+    )
+
+
+def invalid_transition(
+    error: InvalidScanRunTransitionError,
+) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail=str(error),
+    )
 
 
 @router.post(
@@ -25,7 +59,7 @@ def create_scan_run(
     data: ScanRunCreate,
     session: DatabaseSession,
 ) -> ScanRunRead:
-    service = ScanRunService(session)
+    service = get_service(session)
     scan_run = service.create_scan_run(data)
 
     return ScanRunRead.model_validate(scan_run)
@@ -38,10 +72,11 @@ def create_scan_run(
 def list_scan_runs(
     session: DatabaseSession,
 ) -> list[ScanRunRead]:
-    service = ScanRunService(session)
-    scan_runs = service.list_scan_runs()
+    service = get_service(session)
 
-    return [ScanRunRead.model_validate(scan_run) for scan_run in scan_runs]
+    return [
+        ScanRunRead.model_validate(scan_run) for scan_run in service.list_scan_runs()
+    ]
 
 
 @router.get(
@@ -52,13 +87,83 @@ def get_scan_run(
     scan_run_id: UUID,
     session: DatabaseSession,
 ) -> ScanRunRead:
-    service = ScanRunService(session)
-    scan_run = service.get_scan_run(scan_run_id)
+    service = get_service(session)
 
-    if scan_run is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Scan run not found",
+    try:
+        scan_run = service.get_scan_run(
+            scan_run_id,
         )
+    except ScanRunNotFoundError as error:
+        raise scan_run_not_found() from error
+
+    return ScanRunRead.model_validate(scan_run)
+
+
+@router.post(
+    "/{scan_run_id}/start",
+    response_model=ScanRunRead,
+)
+def start_scan_run(
+    scan_run_id: UUID,
+    session: DatabaseSession,
+) -> ScanRunRead:
+    service = get_service(session)
+
+    try:
+        scan_run = service.start_scan_run(
+            scan_run_id,
+        )
+    except ScanRunNotFoundError as error:
+        raise scan_run_not_found() from error
+    except InvalidScanRunTransitionError as error:
+        raise invalid_transition(error) from error
+
+    return ScanRunRead.model_validate(scan_run)
+
+
+@router.post(
+    "/{scan_run_id}/complete",
+    response_model=ScanRunRead,
+)
+def complete_scan_run(
+    scan_run_id: UUID,
+    data: ScanRunComplete,
+    session: DatabaseSession,
+) -> ScanRunRead:
+    service = get_service(session)
+
+    try:
+        scan_run = service.complete_scan_run(
+            scan_run_id,
+            data,
+        )
+    except ScanRunNotFoundError as error:
+        raise scan_run_not_found() from error
+    except InvalidScanRunTransitionError as error:
+        raise invalid_transition(error) from error
+
+    return ScanRunRead.model_validate(scan_run)
+
+
+@router.post(
+    "/{scan_run_id}/fail",
+    response_model=ScanRunRead,
+)
+def fail_scan_run(
+    scan_run_id: UUID,
+    data: ScanRunFail,
+    session: DatabaseSession,
+) -> ScanRunRead:
+    service = get_service(session)
+
+    try:
+        scan_run = service.fail_scan_run(
+            scan_run_id,
+            data,
+        )
+    except ScanRunNotFoundError as error:
+        raise scan_run_not_found() from error
+    except InvalidScanRunTransitionError as error:
+        raise invalid_transition(error) from error
 
     return ScanRunRead.model_validate(scan_run)
