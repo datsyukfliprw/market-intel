@@ -1,3 +1,4 @@
+from app.api.scan_candidates import router as scan_candidates_router
 from fastapi import FastAPI
 
 from app.api.health import router as health_router
@@ -15,6 +16,7 @@ app = FastAPI(
 
 app.include_router(health_router)
 app.include_router(scan_runs_router)
+app.include_router(scan_candidates_router)
 
 
 @app.get("/")
