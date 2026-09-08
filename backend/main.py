@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.api.health import router as health_router
 from app.api.instruments import router as instruments_router
+from app.api.penny import router as penny_router
 from app.api.scan_candidates import router as scan_candidates_router
 from app.api.scan_runs import router as scan_runs_router
 from app.core.config import get_settings
@@ -19,6 +20,7 @@ app.include_router(health_router)
 app.include_router(scan_runs_router)
 app.include_router(instruments_router)
 app.include_router(scan_candidates_router)
+app.include_router(penny_router)
 
 
 @app.get("/")
