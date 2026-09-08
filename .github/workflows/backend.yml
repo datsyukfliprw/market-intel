@@ -1,0 +1,56 @@
+name: backend
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+  push:
+    branches:
+      - master
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.10.0"
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Sync locked environment
+        run: uv sync --frozen --all-groups
+
+      - name: Ruff lint
+        run: uv run ruff check --select E4,E7,E9,F app tests main.py
+
+      - name: Ruff format
+        run: uv run ruff format --check app tests main.py
+
+      - name: Mypy
+        run: uv run mypy app main.py
+
+      - name: Tests
+        run: uv run pytest -q
+
+      - name: Migration round trip
+        env:
+          DATABASE_URL: sqlite:///./ci-migrations.db
+        run: |
+          uv run alembic upgrade head
+          uv run alembic downgrade base
+          rm -f ci-migrations.db
