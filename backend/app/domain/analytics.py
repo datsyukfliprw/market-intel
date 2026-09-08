@@ -75,9 +75,7 @@ class PerformanceAggregator:
         score_slices: list[PerformanceSlice] = []
         for minimum, maximum, label in self.SCORE_BANDS:
             band = [
-                sample
-                for sample in materialized
-                if minimum <= sample.score <= maximum
+                sample for sample in materialized if minimum <= sample.score <= maximum
             ]
             if band:
                 score_slices.append(self._slice(label, band))
@@ -107,12 +105,8 @@ class PerformanceAggregator:
             entry_trigger_rate=self._rate(len(entered), len(samples)),
             target_hit_rate_given_entry=self._rate(len(targets), len(entered)),
             invalidation_rate_given_entry=self._rate(len(invalidated), len(entered)),
-            average_mfe_r=self._average(
-                sample.outcome.mfe_r for sample in entered
-            ),
-            average_mae_r=self._average(
-                sample.outcome.mae_r for sample in entered
-            ),
+            average_mfe_r=self._average(sample.outcome.mfe_r for sample in entered),
+            average_mae_r=self._average(sample.outcome.mae_r for sample in entered),
             average_mark_to_market_r=self._average(
                 sample.outcome.mark_to_market_r for sample in entered
             ),

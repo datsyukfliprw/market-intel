@@ -438,9 +438,7 @@ class PennyScorer:
         if score >= self.MIN_A_TIER_SCORE and complete_gate_passed:
             return CandidateClassification.A_TIER
 
-        catalyst_ready = (
-            features.verified_catalyst and features.catalyst_quality >= 3
-        )
+        catalyst_ready = features.verified_catalyst and features.catalyst_quality >= 3
         setup_not_ready = (
             features.structure_quality < 3
             or features.execution_quality < 3

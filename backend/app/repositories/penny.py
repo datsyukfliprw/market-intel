@@ -40,7 +40,6 @@ class PennyRepository:
         self.session.flush()
         return snapshot
 
-
     def rerank_scan_candidates(self, scan_run_id: UUID) -> None:
         """Project immutable snapshot scores onto the mutable scan queue."""
 
@@ -87,9 +86,9 @@ class PennyRepository:
             statement = statement.where(
                 PennyCandidateSnapshot.scoring_version == scoring_version
             )
-        statement = statement.order_by(
-            PennyCandidateSnapshot.captured_at.desc()
-        ).limit(limit)
+        statement = statement.order_by(PennyCandidateSnapshot.captured_at.desc()).limit(
+            limit
+        )
         return list(self.session.scalars(statement).all())
 
     def list_observations(

@@ -298,7 +298,9 @@ class OutcomeCalculator:
             )
 
         post_entry_all = ordered[entry_index:]
-        terminal_index = terminal_index if terminal_index is not None else len(ordered) - 1
+        terminal_index = (
+            terminal_index if terminal_index is not None else len(ordered) - 1
+        )
         through_terminal = ordered[entry_index : terminal_index + 1]
 
         high_until_terminal = max(bar.high for bar in through_terminal)
@@ -414,7 +416,9 @@ class OutcomeCalculator:
         ordered = sorted(observations, key=lambda item: item.observed_at)
         sources = {item.source for item in ordered}
         if len(sources) > 1:
-            raise ValueError("one outcome replay must use exactly one market-data source")
+            raise ValueError(
+                "one outcome replay must use exactly one market-data source"
+            )
         timestamps = [item.observed_at for item in ordered]
         if len(timestamps) != len(set(timestamps)):
             raise ValueError("observations must be unique by observed_at")

@@ -296,8 +296,7 @@ class PennyLedgerService:
                 "source": normalized_source,
                 "trade_plan": trade_plan.model_dump(mode="json"),
                 "observations": [
-                    observation.model_dump(mode="json")
-                    for observation in observations
+                    observation.model_dump(mode="json") for observation in observations
                 ],
             }
         )
@@ -432,9 +431,7 @@ class PennyLedgerService:
         )
 
     def verify_snapshot(self, snapshot: PennyCandidateSnapshot) -> bool:
-        expected = self._digest(
-            self._stored_payload(snapshot)
-        )
+        expected = self._digest(self._stored_payload(snapshot))
         return expected == snapshot.snapshot_hash
 
     def _require_snapshot(self, snapshot_id: UUID) -> PennyCandidateSnapshot:
@@ -486,9 +483,7 @@ class PennyLedgerService:
             "features": features.model_dump(mode="json"),
             "score_result": score_result.model_dump(mode="json"),
             "trade_plan": (
-                trade_plan.model_dump(mode="json")
-                if trade_plan is not None
-                else None
+                trade_plan.model_dump(mode="json") if trade_plan is not None else None
             ),
             "research": research.model_dump(mode="json"),
             "provenance": [item.model_dump(mode="json") for item in provenance],

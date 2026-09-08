@@ -168,9 +168,7 @@ def list_observations(
     source: str | None = None,
 ) -> list[PennyObservationRead]:
     try:
-        return list(
-            get_service(session).list_observations(snapshot_id, source=source)
-        )
+        return list(get_service(session).list_observations(snapshot_id, source=source))
     except PennySnapshotNotFoundError as error:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -228,9 +226,7 @@ def list_evaluations(
     source: str | None = None,
 ) -> list[PennyEvaluationRead]:
     try:
-        return list(
-            get_service(session).list_evaluations(snapshot_id, source=source)
-        )
+        return list(get_service(session).list_evaluations(snapshot_id, source=source))
     except PennySnapshotNotFoundError as error:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
